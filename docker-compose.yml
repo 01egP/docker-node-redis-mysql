@@ -1,0 +1,43 @@
+version: "3.8"
+services:
+  db:
+    build: ./db
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: test
+    restart: always
+    networks:
+      - my-net
+  web:
+    build: ./web
+    environment:
+      MYSQL_DATABASE: test
+      MYSQL_USER: root
+      MYSQL_PASSWORD: password
+      MYSQL_HOST: db
+      REDIS_HOST: redis
+    ports:
+      - "5001:5000"
+    command: /bin/sh -c 'nodemon -e js,html index.js'
+    depends_on:
+      - db
+    restart: on-failure
+    links:
+      - redis
+    networks:
+      - my-net
+  redis:
+    image: redis:6.2-alpine
+    container_name: redis
+    restart: unless-stopped
+    network_mode: bridge
+    hostname: redis
+    expose:
+      - 6379
+    ports:
+      - '6379:6379'
+    networks:
+      - my-net
+networks:
+    my-net:
+
